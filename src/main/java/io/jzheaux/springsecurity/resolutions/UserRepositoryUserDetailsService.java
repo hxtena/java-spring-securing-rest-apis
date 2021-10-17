@@ -17,6 +17,11 @@ public class UserRepositoryUserDetailsService implements UserDetailsService {
         this.users = users;
     }
 
+    @Bean
+    UserDetailsService userDetailsService(UserRepository users) {
+        return new UserRepositoryUserDetailsService(users);
+    }
+    
     @Override
     public UserDetails loadUserByUsername(String username) {
         return this.users.findByUsername(username)
