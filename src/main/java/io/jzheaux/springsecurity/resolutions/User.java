@@ -1,14 +1,23 @@
 package io.jzheaux.springsecurity.resolutions;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 @Entity(name="users")
 public class User implements Serializable {
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
     UUID id;
 
     @Column
@@ -20,13 +29,35 @@ public class User implements Serializable {
     @Column
     boolean enabled = true;
 
-    User() {}
+    @OneToMany(fetch= FetchType.EAGER, cascade=CascadeType.ALL)
+    Collection<UserAuthority> userAuthorities = new ArrayList<>();
 
-    public User(String username, String password) {
+    public User() {}
+
+    User(User user) {
+        this.id = user.id;
+        this.username = user.username;
+        this.password = user.password;
+        this.enabled = user.enabled;
+        this.userAuthorities = user.userAuthorities;
+    }
+
+    User(String username, String password) {
         this.id = UUID.randomUUID();
         this.username = username;
         this.password = password;
     }
+
+
+    public Collection<UserAuthority> getUserAuthorities() {
+        return Collections.unmodifiableCollection(this.userAuthorities);
+    }
+
+    public void grantAuthority(String authority) {
+        UserAuthority userAuthority = new UserAuthority(this, authority);
+        this.userAuthorities.add(userAuthority);
+    }
+
 
     public UUID getId() {
         return id;
